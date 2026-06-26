@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+sqladmin
+sqlalchemy
+pydantic
+openai
+python-dotenv
+chromadb
+sentence-transformers
+flashrank
+pymupdf
