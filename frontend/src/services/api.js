@@ -1,4 +1,4 @@
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = "https://sapa-pustaka-production.up.railway.app";
 
 export async function askQuestion(question, userId, name, sessionId) {
   const response = await fetch(
