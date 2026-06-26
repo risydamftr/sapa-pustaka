@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom"; // Digunakan untuk pindah ke halaman chat
-import logo from "../assets/Logologin.png";
+import logo from "../assets/logologin.png";
 
 function Login() {
   // 1. Definisikan State untuk menampung input dari user
