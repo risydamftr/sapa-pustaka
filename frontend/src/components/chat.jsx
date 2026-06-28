@@ -1,64 +1,53 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom"; // Digunakan untuk memproteksi halaman jika belum login
+import { useNavigate } from "react-router-dom"; 
 import { askQuestion } from "../services/api";
+// --- 1. IMPORT REACT MARKDOWN DI SINI ---
+import ReactMarkdown from "react-markdown";
 
 function Chat() {
   const navigate = useNavigate();
 
-  // 1. Ambil data login dari localStorage secara dinamis
   const username = localStorage.getItem("user_name") || "Tamu";
   const userId = localStorage.getItem("user_id");
   const sessionId = localStorage.getItem("session_id");
 
-  // 2. Proteksi Halaman: Jika data login tidak ada, paksa user kembali ke halaman login (/)
   useEffect(() => {
-    if (!userId) {
+    const currentUserId = localStorage.getItem("user_id");
+    if (!currentUserId) {
       navigate("/"); 
     }
-  }, [userId, navigate]);
+  }, [navigate]); 
 
   const [question, setQuestion] = useState("");
 
-  // Template pesan selamat datang dasar
   const welcomeMessage = {
     type: "welcome",
     title: `Halo, ${username}👋`,
     text: `Saya Sahabat Asistensi dan Pendampingan Perpustakaan yang siap membantu.\nSilahkan ajukan pertanyaan.`,
   };
 
-  // Menggunakan nama dinamis dari localStorage untuk pesan selamat datang
   const [messages, setMessages] = useState([welcomeMessage]);
   const [loading, setLoading] = useState(false);
   
-  // Fungsi untuk membersihkan obrolan (Dipicu ketika tombol Percakapan Baru di Sidebar diklik)
   const handleCreateNewChat = () => {
-    setMessages([welcomeMessage]); // Kembalikan ke pesan selamat datang saja
-    setQuestion(""); // Kosongkan input bar jika ada teks tertinggal
+    setMessages([welcomeMessage]); 
+    setQuestion(""); 
   };
 
-  // =========================================================
-  // EKSPOS FUNGSI KE WINDOW OBJECT DAN MENANGKAP CUSTOM EVENT
-  // =========================================================
   useEffect(() => {
-    // 1. Sinkronisasi via Pemanggilan Fungsi Window Langsung
-    window.handleCreateNewChat = handleCreateNewChat;
-
-    // 2. Sinkronisasi via Custom Event Listener (Double Protection)
     const handleResetSignal = () => {
       handleCreateNewChat();
     };
+
     window.addEventListener("resetChatEvent", handleResetSignal);
     
-    // Bersihkan dari memori saat komponen dilepas
     return () => {
-      delete window.handleCreateNewChat;
       window.removeEventListener("resetChatEvent", handleResetSignal);
     };
-  }, [messages]); 
-  // =========================================================
+  }, []);
 
   async function handleSend() {
-    if (!question.trim()) return;
+    if (!question.trim() || loading) return;
 
     const currentQuestion = question;
 
@@ -74,7 +63,6 @@ function Chat() {
     setLoading(true);
 
     try {
-      // 3. Kirim pertanyaan beserta data pengirim (ID, Nama, Sesi) ke fungsi API
       const response = await askQuestion(
         currentQuestion,
         userId,
@@ -82,29 +70,32 @@ function Chat() {
         sessionId
       );
 
+      const botReply = response?.answer || response?.reply || response?.message || "Sistem tidak memberikan teks jawaban.";
+
       setMessages((prev) => [
         ...prev,
         {
           type: "bot",
-          text: response.answer,
-          sources: response.sources,
+          text: botReply,
+          sources: response?.sources || [],
         },
       ]);
     } catch (error) {
+      console.error("Error saat memanggil API:", error);
       setMessages((prev) => [
         ...prev,
         {
           type: "bot",
-          text: "Maaf, terjadi kesalahan.",
+          text: "Maaf, terjadi kesalahan pada sistem.",
         },
       ]);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   return (
-    <div className="chat-main-container" style={{ flex: 1, display: "flex", flexDirection: "column", height: "100vh", width: "100%" }}>
+    <div className="chat-main-container" style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0, width: "100%" }}>
       
       <div className="chat-box" style={{ flex: 1, overflowY: "auto" }}>
         {messages.map((msg, index) => {
@@ -115,7 +106,7 @@ function Chat() {
                 className="welcome-message"
               >
                 <h2 className="welcome-title">
-                  {msg.title}
+                  {msg?.title || "Selamat Datang"}
                 </h2>
 
                 <p
@@ -124,7 +115,7 @@ function Chat() {
                     whiteSpace: "pre-line",
                   }}
                 >
-                  {msg.text}
+                  {msg?.text || ""}
                 </p>
               </div>
             );
@@ -132,37 +123,35 @@ function Chat() {
           return (
             <div
               key={index}
-              className={`message-row ${msg.type}`}
+              className={`message-row ${msg?.type || "bot"}`}
             >
               <div
-                className={`message-bubble ${msg.type}`}
+                className={`message-bubble ${msg?.type || "bot"}`}
               >
                 <div className="sender">
-                  {msg.type === "user"
+                  {msg?.type === "user"
                     ? username
                     : "SAPA PUSTAKA"}
                 </div>
 
-                <p 
-                  style={{
-                    whiteSpace: "pre-line",
-                  }}
-                >
-                  {msg.text}
-                </p>
-
-                {msg.sources && msg.sources.length > 0 && (
+                {/* --- 2. UBAH DARI TAG <p> BIASA MENJADI <ReactMarkdown> --- */}
+                <div className="message-text-content">
+                  <ReactMarkdown>
+                    {msg?.text || "Tidak ada pesan teks yang diterima."}
+                  </ReactMarkdown>
+                </div>
+                {msg?.sources && msg.sources.length > 0 && (
                   <div className="sources">
                     <b>Referensi:</b>
                     <ul>
                       {msg.sources.map((src, i) => (
                         <li key={i}>
-                          📄 {src.source}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                          📄 {src?.source || "Sumber tidak diketahui"}
+                          </li> // <-- SEBELUMNYA TERTULIS </td>, GANTI JADI TENTU </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
               </div>
             </div>
           );
@@ -186,8 +175,9 @@ function Chat() {
       <div className="input-area">
         <input
           value={question}
-          placeholder="Tulis pertanyaan..."
+          placeholder={loading ? "Sedang memproses..." : "Tulis pertanyaan..."}
           onChange={(e) => setQuestion(e.target.value)}
+          disabled={loading} 
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               handleSend();
@@ -195,8 +185,8 @@ function Chat() {
           }}
         />
 
-        <button onClick={handleSend}>
-          Kirim
+        <button onClick={handleSend} disabled={loading}>
+          {loading ? "..." : "Kirim"} 
         </button>
       </div>
 

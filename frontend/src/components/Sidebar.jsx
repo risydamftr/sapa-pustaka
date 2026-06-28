@@ -19,10 +19,11 @@ function Sidebar() {
 
   // Fungsi untuk Logout
   const handleLogout = () => {
+    console.log("Tombol logout diklik!");
     const confirmLogout = window.confirm("Apakah Anda yakin ingin keluar?");
     if (confirmLogout) {
       localStorage.clear(); // Hapus sesi login di browser
-      navigate("/");        // Alihkan kembali ke halaman Login
+      window.location.href = "/";        // Alihkan kembali ke halaman Login
     }
   };
 

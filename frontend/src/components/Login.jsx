@@ -13,7 +13,7 @@ function Login() {
     e.preventDefault(); // Mencegah page reload bawaan form HTML
 
     // Validasi sederhana agar input tidak kosong
-    if (!username.strip() || !email.strip()) {
+    if (!username.trim() || !email.trim()) {
       alert("Harap isi Username dan Email terlebih dahulu!");
       return;
     }
@@ -28,7 +28,7 @@ function Login() {
 
     // 3. Pindahkan user ke halaman chat utama kamu
     // Ganti "/chat" di bawah ini sesuai dengan path route chatbot-mu di App.jsx
-    navigate("/chat"); 
+    window.location.href = "/"; 
   };
 
   return (

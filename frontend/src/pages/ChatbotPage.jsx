@@ -1,9 +1,10 @@
 import Chat from "../components/chat";
 import Sidebar from "../components/Sidebar";
 
-function App() {
+function ChatbotPage() { // Mengubah nama fungsi menjadi sesuai nama file agar rapi
   return (
-    <div className="app-layout">
+    /* PERBAIKAN UTAMA: Mengubah kelas menjadi app-container agar CSS pengunci layar aktif */
+    <div className="app-container">
 
       <Sidebar />
 
@@ -37,4 +38,4 @@ function App() {
   );
 }
 
-export default App;
+export default ChatbotPage;
